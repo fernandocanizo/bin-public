@@ -1,0 +1,6 @@
+#!/bin/bash
+#
+# puts private permission to dirs and files, i.e.: only user can access
+
+find . -type d -exec chmod 700 {} \;
+find . -type f -exec chmod 600 {} \;
