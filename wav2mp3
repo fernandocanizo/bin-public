@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# rip a CD...
+nice -n -20 cdparanoia -B -v -X
+wait
+
+# then encode it to mp3
+for song in *.wav; do
+	nice -n -20 bladeenc $song $song.mp3 -crc -del
+	wait
+done
