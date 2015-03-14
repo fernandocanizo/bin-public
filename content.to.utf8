@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# converts files from ISO-8859-1 encoding to UTF-8
+# you should check your input data before using this script
+
+# create a temporary file to work
+auxFile=`mktemp`
+
+for someFile in $@;
+do
+	iconv -f iso-8859-1 -t utf-8 "${someFile}" >| ${auxFile}
+	mv ${auxFile} "${someFile}"
+done
