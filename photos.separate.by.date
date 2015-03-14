@@ -1,0 +1,15 @@
+#!/bin/bash
+# Creation date: 2010.12.06
+
+
+# create directories based on date written on filename and move files to
+# appropriate directory
+
+for picture in *.jpg; do
+	date=${picture:0:10};
+	if [[ -d ${date} ]]; then
+		mv $picture ${date}; 
+	else
+		mkdir ${date} && mv $picture ${date};
+	fi;
+done

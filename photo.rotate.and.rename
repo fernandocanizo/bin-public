@@ -1,0 +1,12 @@
+#!/bin/bash
+# Creation date: 2010.12.06
+
+# Rotates photos according to exif tag
+# Then rename them using exif date
+# needs jhead http://www.sentex.net/~mwandel/jhead/
+
+
+lowercase *
+jhead -autorot *.jpg
+jhead -ft -n%Y.%m.%d-%H%M%S *.jpg
+chmod 644 *.jpg
