@@ -1,0 +1,6 @@
+#!/bin/bash
+
+# convert all ISO8859-1 encoded files into UTF-8
+# be sure to check before they are really in ISO8859-1
+
+convmv --notest -f iso88591 -t utf8 "$@"

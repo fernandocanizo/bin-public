@@ -1,0 +1,5 @@
+#!/bin/bash
+
+# reset screen size to maximum available size
+
+xrandr -s 0

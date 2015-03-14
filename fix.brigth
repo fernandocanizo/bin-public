@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# some apps broke my screen bright, this sets the brightness back to full
+
+xset s 1 # screen blank on in 1 second, but also brigth restored
+xset s on # screen blank off
+sleep 2
+xset s off
+xset dpms force off
+xset -dpms
