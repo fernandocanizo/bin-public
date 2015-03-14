@@ -1,0 +1,7 @@
+#!/bin/bash
+
+
+# creates urxvt terminals running tail on Apache log files
+
+urxvtc -title access -e tail -f /var/log/httpd/access_log
+urxvtc -title error -e tail -f /var/log/httpd/error_log
