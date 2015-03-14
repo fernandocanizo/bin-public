@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# returns your current IP by asking external services
+
+curl ifconfig.me
+
+# another one
+#curl icanhazip.com
