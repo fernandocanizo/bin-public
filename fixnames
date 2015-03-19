@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# Thu, 15 Mar 2007 08:53:09 -0300
+# by conan@lugmen.org.ar
+# Heavily modified on Sat, 26 Apr 2008 12:03:57 -0300
+
+# replaces spaces by dots
+# you can use it recursively like this:
+# find -type d | grep -v '^.$' | xargs -n1 thisscript
+# but if you got directories with spaces, it's a bit trickier. Edit a companion script with this:
+# cd "$@"
+# fixnames
+# and call it do, then use this one:
+# find -type d -print0 | grep -a " " | sort -zr | xargs -0 -n1 ./do
+
+# for debugging only
+#set -o verbose
+#set -o xtrace
+
+function do_name {
+	# lowercase
+	new_name=`echo $archivo | tr [:upper:] [:lower:]`
+
+	# replace & sign
+	new_name=`echo $new_name | sed 's/&/and/'`
+
+	# remove exclamation and interrogation signs
+	new_name=`echo $new_name | sed 's/[¡!¿?]//'`
+
+	# replace blanks with dots
+	new_name=`echo $new_name | tr [:blank:] .`
+
+	# replace undescore with dots
+	new_name=`echo $new_name | tr _ .`
+
+	# replace backticks with dots
+	# TODO: this one is not working, from command line works, but here it replaces backticks by nothing
+	# except if the backtick is in the middle of words
+	new_name=$(echo "$new_name" | tr '`' '.')
+
+	# replace parenthesis
+	# first eliminate starting ones since we don't want hidden files
+	new_name=`echo $new_name | sed 's/^(//'`
+	# then replace normally the rest
+	new_name=`echo $new_name | tr '()' '.'`
+
+	# replace apostrophe
+	new_name=`echo $new_name | tr "'" "."`
+
+	# fix the '.-.' issue
+	new_name=`echo $new_name | sed 's/\.-\./-/g'`
+	new_name=`echo $new_name | sed 's/\.\?-\.\?/-/g'`
+
+	# fix multiple dash issue
+	new_name=`echo $new_name | tr -s -- - -`
+
+	# I prefer dots over dash after track number (must be after fixind .-. issue, and all involving - issues)
+	new_name=`echo $new_name | sed 's/^\([0-9]\+\)-/\1./'`
+
+	# fix multiple dot issue
+	new_name=`echo $new_name | tr -s '.' '.'`
+
+	# fix comma dot issue
+	new_name=`echo $new_name | sed 's/\.,\./,/g'`
+	new_name=`echo $new_name | sed 's/\.\?,\.\?/,/g'`
+
+	# safeguard removal: we don't want leading nor trailing dots
+	new_name=`echo $new_name | sed 's/^\.//'`
+	new_name=`echo $new_name | sed 's/\.$//'`
+}
+
+for archivo in *; do
+	do_name $archivo
+	# rename the file (only if all replacing went well)
+	if [[ -n $new_name && $archivo != $new_name ]]; then
+		echo "mv $archivo $new_name"
+		mv "$archivo" "$new_name"
+	fi
+done
