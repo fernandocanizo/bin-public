@@ -1,0 +1,87 @@
+#! /usr/bin/env python
+# -*- coding: utf8 -*-
+# Creation Date: 2006.09.19
+# Author: Fernando L. Canizo - http://flc.muriandre.com/
+# This software is under GPL v2 license - http://www.gnu.org/licenses/gpl.txt
+
+import os
+import sys
+import datetime
+
+VERSION = "1.0"
+
+def usage(script_name):
+	return """
+%s is a script to add/substract times
+
+Usage: %s time1 [+|-] time2
+Alternatively you can use prefix notation: %s [+|-] time1 time2
+
+If you don't provide operand, addition gets done by default.
+Times must be specified with format HH:MM:SS.
+All fields must be complete or script will exit with error.
+If you don't have seconds then puth HH:MM:00, if you don't have hours then put 00:MM:SS.
+""" % (script_name, script_name, script_name)
+
+def parse_time(sometime):
+	"""
+	Given a time in the format 'hh:mm:ss' return a tuple (hh, mm, ss) with integer members.
+	Returns False if any member (hh, mm or ss) are not integers.
+	"""
+
+	hours, minutes, seconds = sometime.split(':')
+
+	if not seconds.isdigit() or	not minutes.isdigit() or not hours.isdigit():
+		return False
+
+	seconds = int(seconds)
+	minutes = int(minutes)
+	hours = int(hours)
+
+	return (hours, minutes, seconds)
+
+
+def add_times(time1, time2, operation='+'):
+	"""
+	Returns addition or substraction o time1 and time2 as a datetime.timedelta object
+	Returns False if operation is not '+' or '-'
+	"""
+
+	# stupid timedelta doen't support tuples and has a screwed format:
+	# class timedelta([days[, seconds[, microseconds[, milliseconds[, minutes[, hours[, weeks]]]]]]])
+	t1_hour = time1[0]
+	t1_minutes = time1[1]
+	t1_seconds = time1[2]
+	t2_hour = time2[0]
+	t2_minutes = time2[1]
+	t2_seconds = time2[2]
+
+	a = datetime.timedelta(hours=t1_hour, minutes=t1_minutes, seconds=t1_seconds)
+	b = datetime.timedelta(hours=t2_hour, minutes=t2_minutes, seconds=t2_seconds)
+	if operation == '+':
+		return a + b
+	elif operation == '-':
+		return a - b
+	else:
+		return False
+
+
+if __name__ == "__main__":
+	len_argv = len(sys.argv)
+	if len_argv > 4 or len_argv < 3:
+		print(usage(os.path.basename(sys.argv[0])))
+		raise SystemExit
+
+	parameters = sys.argv[1:]
+
+	if len_argv == 3: # no operand, make addition by default
+		print(add_times(parse_time(parameters[0]), parse_time(parameters[1])))
+		raise SystemExit
+
+	# if still here, we got all 3 parameters
+	for parameter in parameters:
+		if parameter == '+' or parameter == '-':
+			operand = parameter
+	parameters.remove(operand)
+
+	print(add_times(parse_time(parameters[0]), parse_time(parameters[1]), operand))
