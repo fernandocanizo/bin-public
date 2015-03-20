@@ -1,0 +1,79 @@
+#! /usr/bin/env python
+# -*- coding: utf8 -*-
+# Creation Date: 2006.09.19
+# Author: Fernando L. Canizo - http://flc.muriandre.com/
+# This software is under GPL v2 license - http://www.gnu.org/licenses/gpl.txt
+
+import os
+import sys
+import time
+
+VERSION = "1.0"
+
+def usage(script_name):
+	return """
+%s is a script to add/substract times to/from localtime
+
+Usage: %s [+|-] time
+Alternatively you can put: %s time [+|-]
+
+If you don't provide operand, addition gets done by default.
+time must be specified with format HH:MM:SS.
+All time fields on the previous format exposed must be complete or script will fail.
+If you don't have seconds then puth HH:MM:00, if you don't have hours then put 00:MM:SS, etc.
+""" % (script_name, script_name, script_name)
+
+def parse_time(sometime):
+	"""
+	Given a time in the format 'hh:mm:ss' return a tuple (hh, mm, ss) with integer members.
+	Returns False if any member (hh, mm or ss) are not integers.
+	"""
+
+	hours, minutes, seconds = sometime.split(':')
+#	print hours, minutes, seconds
+
+	if not seconds.isdigit() or	not minutes.isdigit() or not hours.isdigit():
+		return False
+
+	seconds = int(seconds)
+	minutes = int(minutes)
+	hours = int(hours)
+
+	return (hours, minutes, seconds)
+
+
+def add_time(atime, operation='+'):
+	"""
+	Returns addition or substraction of time to localtime
+	"""
+
+	# convert time to seconds
+	seconds = atime[0] * 3600 + atime[1] * 60 + atime[2]
+
+	if operation == '+':
+		return time.ctime(seconds + time.time())
+	elif operation == '-':
+		return time.ctime(time.time() - seconds)
+	else:
+		return False
+
+
+if __name__ == "__main__":
+	len_argv = len(sys.argv)
+	if len_argv > 3 or len_argv < 2:
+		print(usage(os.path.basename(sys.argv[0])))
+		raise SystemExit
+
+	parameters = sys.argv[1:]
+
+	if len_argv == 2: # no operand, make addition by default
+		print(add_time(parse_time(parameters[0])))
+		raise SystemExit
+
+	# if still here, we got operand
+	for parameter in parameters:
+		if parameter == '+' or parameter == '-':
+			operand = parameter
+	parameters.remove(operand)
+
+	print(add_time(parse_time(parameters[0]), operand))
