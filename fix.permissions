@@ -1,0 +1,15 @@
+#!/bin/bash
+# Creation date: 2004.09.26
+# by Fernando L. Canizo - http://flc.muriandre.com/
+
+# exit if any statement returns false value (can't use $? from now on)
+set -o errexit
+# exit if variable not set
+set -o nounset
+# uncomment to debug
+#set -x
+
+# Put permissive permissions from here and below
+
+find -type d -exec chmod 755 {} \;
+find -type f -exec chmod 644 {} \;
