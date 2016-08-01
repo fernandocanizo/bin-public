@@ -1,0 +1,7 @@
+#!/usr/bin/env sh
+
+if ((1<<32)); then
+	echo 64bits
+else
+	echo 32bits
+fi
