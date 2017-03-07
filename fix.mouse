@@ -1,0 +1,4 @@
+#!/bin/sh
+
+# Fix mouse acceleration
+xset m 1 2
