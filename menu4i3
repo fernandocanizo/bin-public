@@ -1,0 +1,11 @@
+#!/bin/bash
+# Creation date: Wed, 01 Feb 2012 08:55:00 -0300
+# by Fernando Canizo (aka conan) - http://conan.muriandre.com/
+# updated for bella on 2016.08.22
+
+if [[ ! -f /dev/shm/menu4i3 ]]; then
+	cp ~/.config/i3/menu.i3 /dev/shm
+fi
+
+(dmenu "$@" < /dev/shm/menu.i3) | ${SHELL:-"/bin/sh"} &
+
