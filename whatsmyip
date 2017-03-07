@@ -6,3 +6,7 @@ curl ifconfig.me
 
 # another one
 #curl icanhazip.com
+
+
+# another interesting service:
+# http://www.displaymyhostname.com/
