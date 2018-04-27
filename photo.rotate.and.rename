@@ -6,7 +6,7 @@
 # needs jhead http://www.sentex.net/~mwandel/jhead/
 
 
-lowercase *
+fixnames
 jhead -autorot *.jpg
 jhead -ft -n%Y.%m.%d-%H%M%S *.jpg
 chmod 644 *.jpg
