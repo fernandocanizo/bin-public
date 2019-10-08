@@ -1,0 +1,19 @@
+#!/bin/sh
+
+xhost +
+
+# Users home is mounted as home
+# --rm will remove the container as soon as it ends
+
+docker run --rm --name="qgis-desktop" \
+    -i -t \
+    -v ${HOME}/docker.qgis.data:/home/${USER} \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    -v /nas/prefactibilidad:/home/${USER}/nas/prefactibilidad \
+    -v /nas/public:/home/${USER}/nas/public \
+    -v /nas/home:/home/${USER}/nas/home \
+    -e DISPLAY=unix$DISPLAY \
+    kartoza/qgis-desktop
+
+    #qgis/qgis
+xhost -
