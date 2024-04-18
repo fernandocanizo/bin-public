@@ -19,21 +19,21 @@
 
 function do_name {
   # lowercase
-  new_name=`echo $archivo | tr [:upper:] [:lower:]`
+  new_name=$(echo "$archivo" | tr '[:upper:]' '[:lower:]')
   # previous doesn't catch eÑe, so
-  new_name=`echo $new_name | tr 'Ñ' 'ñ'`
+  new_name=$(echo "$new_name" | tr 'Ñ' 'ñ')
 
   # replace & sign
-  new_name=`echo $new_name | sed 's/&/and/'`
+  new_name=$(echo "$new_name" | sed 's/&/and/')
 
   # remove exclamation and interrogation signs
-  new_name=`echo $new_name | sed 's/[¡!¿?]//'`
+  new_name=$(echo "$new_name" | sed 's/[¡!¿?]//')
 
   # replace blanks with dots
-  new_name=`echo $new_name | tr [:blank:] .`
+  new_name=$(echo "$new_name" | tr '[:blank:]' .)
 
   # replace undescore with dots
-  new_name=`echo $new_name | tr _ .`
+  new_name=$(echo "$new_name" | tr _ .)
 
   # replace backticks with dots
   # TODO: this one is not working, from command line works, but here it replaces backticks by nothing
@@ -42,39 +42,39 @@ function do_name {
 
   # replace parenthesis
   # first eliminate starting ones since we don't want hidden files
-  new_name=`echo $new_name | sed 's/^(//'`
+  new_name=$(echo "$new_name" | sed 's/^(//')
   # then replace normally the rest
-  new_name=`echo $new_name | tr '()' '.'`
+  new_name=$(echo "$new_name" | tr '()' '.')
 
   # replace apostrophe
-  new_name=`echo $new_name | tr "'" "."`
+  new_name=$(echo "$new_name" | tr "'" ".")
 
   # fix the '.-.' issue
-  new_name=`echo $new_name | sed 's/\.-\./-/g'`
-  new_name=`echo $new_name | sed 's/\.\?-\.\?/-/g'`
+  new_name=$(echo "$new_name" | sed 's/\.-\./-/g')
+  new_name=$(echo "$new_name" | sed 's/\.\?-\.\?/-/g')
 
   # fix multiple dash issue
-  new_name=`echo $new_name | tr -s -- - -`
+  new_name=$(echo "$new_name" | tr -s -- - -)
 
   # I prefer dots over dash after track number (must be after fixind .-. issue, and all involving - issues)
-  new_name=`echo $new_name | sed 's/^\([0-9]\+\)-/\1./'`
+  new_name=$(echo "$new_name" | sed 's/^\([0-9]\+\)-/\1./')
 
   # fix multiple dot issue
-  new_name=`echo $new_name | tr -s '.' '.'`
+  new_name=$(echo "$new_name" | tr -s '.' '.')
 
   # fix comma dot issue
-  new_name=`echo $new_name | sed 's/\.,\./,/g'`
-  new_name=`echo $new_name | sed 's/\.\?,\.\?/,/g'`
+  new_name=$(echo "$new_name" | sed 's/\.,\./,/g')
+  new_name=$(echo "$new_name" | sed 's/\.\?,\.\?/,/g')
 
   # safeguard removal: we don't want leading nor trailing dots
-  new_name=`echo $new_name | sed 's/^\.//'`
-  new_name=`echo $new_name | sed 's/\.$//'`
+  new_name=$(echo "$new_name" | sed 's/^\.//')
+  new_name=$(echo "$new_name" | sed 's/\.$//')
 }
 
 for archivo in *; do
-  do_name $archivo
+  do_name "$archivo"
   # rename the file (only if all replacing went well)
-  if [[ -n $new_name && $archivo != $new_name ]]; then
+  if [[ -n "$new_name" && "$archivo" != "$new_name" ]]; then
     echo "mv $archivo $new_name"
     mv "$archivo" "$new_name"
   fi
