@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+
+# flc 2026-06-10
+# Show clients and their workspace
+
+hyprctl clients -j | python3 -c "
+  import sys, json
+  clients = json.load(sys.stdin)
+  for c in clients:
+    ws = c.get('workspace', {})
+    print(f'[{ws.get(\"id\",\"?\")}] {c[\"class\"]:20s} | {c[\"title\"][:60]}')
+"
