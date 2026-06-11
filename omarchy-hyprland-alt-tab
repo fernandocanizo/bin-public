@@ -1,0 +1,114 @@
+#!/usr/bin/env python3
+"""
+Workspace-local alt-tab for Hyprland.
+Cycles focus only among windows on the current workspace.
+Maintains a persistent ring so all windows are visited, not just the last two.
+"""
+import json
+import os
+import subprocess
+import sys
+
+STATE_DIR = "/tmp/omarchy-tabbed-mode"
+
+
+def hyprctl(args):
+    cmd = ["hyprctl", "-j"] + args
+    result = subprocess.run(cmd, capture_output=True, text=True)
+    if result.returncode != 0:
+        return None
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return result.stdout.strip()
+
+
+def get_ring_file(ws_id):
+    return f"{STATE_DIR}/alt-tab-ring-{ws_id}.json"
+
+
+def load_ring(ws_id):
+    path = get_ring_file(ws_id)
+    if os.path.exists(path):
+        try:
+            with open(path) as f:
+                return json.load(f)
+        except (json.JSONDecodeError, OSError):
+            pass
+    return {"order": [], "pos": 0}
+
+
+def save_ring(ws_id, ring):
+    os.makedirs(STATE_DIR, exist_ok=True)
+    with open(get_ring_file(ws_id), "w") as f:
+        json.dump(ring, f)
+
+
+def focus_next(prev=False):
+    monitors = hyprctl(["monitors"])
+    if not monitors:
+        return
+    ws = None
+    for m in monitors:
+        if m.get("focused"):
+            ws = m.get("activeWorkspace", {}).get("id")
+            break
+    if ws is None:
+        return
+
+    clients = hyprctl(["clients"])
+    if not clients:
+        return
+
+    ws_windows = [c for c in clients if c.get("workspace", {}).get("id") == ws]
+    if len(ws_windows) <= 1:
+        return
+
+    # Build a set of current addresses
+    current_addrs = {c["address"] for c in ws_windows}
+
+    # Load or create ring
+    ring = load_ring(ws)
+    order = ring.get("order", [])
+
+    # Remove closed windows, append new ones
+    new_order = [addr for addr in order if addr in current_addrs]
+    for c in sorted(ws_windows, key=lambda w: w.get("focusHistoryID", 999)):
+        addr = c["address"]
+        if addr not in new_order:
+            new_order.append(addr)
+
+    if len(new_order) <= 1:
+        return
+
+    # Find currently focused window
+    focused_addr = None
+    for c in ws_windows:
+        if c.get("focusHistoryID") == 0:
+            focused_addr = c["address"]
+            break
+
+    # Set position to focused window
+    if focused_addr and focused_addr in new_order:
+        pos = new_order.index(focused_addr)
+    else:
+        pos = ring.get("pos", 0)
+
+    # Advance
+    if prev:
+        pos = (pos - 1) % len(new_order)
+    else:
+        pos = (pos + 1) % len(new_order)
+
+    addr = new_order[pos]
+    subprocess.run(["hyprctl", "dispatch", "focuswindow", f"address:{addr}"])
+    subprocess.run(["hyprctl", "dispatch", "bringactivetotop"])
+
+    # Save updated ring
+    ring["order"] = new_order
+    ring["pos"] = pos
+    save_ring(ws, ring)
+
+
+if __name__ == "__main__":
+    focus_next(prev=(len(sys.argv) > 1 and sys.argv[1] == "prev"))
