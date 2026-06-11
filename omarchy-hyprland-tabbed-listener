@@ -1,0 +1,67 @@
+#!/usr/bin/env python3
+"""
+Hyprland socket2 listener for tabbed workspace support.
+Calls omarchy-hyprland-tabbed-mode when windows open, close, move,
+or when a new workspace is created.
+"""
+import os
+import socket
+import sys
+
+
+def event_stream():
+    xdg = os.environ.get("XDG_RUNTIME_DIR", f"/run/user/{os.getuid()}")
+    hypr_inst = os.environ.get("HYPRLAND_INSTANCE_SIGNATURE")
+    if not hypr_inst:
+        print("HYPRLAND_INSTANCE_SIGNATURE not set", file=sys.stderr)
+        sys.exit(1)
+
+    sock_path = f"{xdg}/hypr/{hypr_inst}/.socket2.sock"
+    s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    try:
+        s.connect(sock_path)
+    except FileNotFoundError:
+        print(f"Socket not found: {sock_path}", file=sys.stderr)
+        sys.exit(1)
+
+    buf = ""
+    while True:
+        data = s.recv(4096).decode("utf-8", errors="ignore")
+        if not data:
+            break
+        buf += data
+        while "\n" in buf:
+            line, buf = buf.split("\n", 1)
+            if line.strip():
+                yield line.strip()
+
+
+def main():
+    for event in event_stream():
+        if event.startswith("openwindow>>"):
+            parts = event.split(">>", 1)[1].split(",")
+            if len(parts) >= 2:
+                os.system(f"omarchy-hyprland-tabbed-mode new-window {parts[0]}")
+
+        elif event.startswith("closewindow>>"):
+            addr = event.split(">>", 1)[1]
+            if addr:
+                os.system(f"omarchy-hyprland-tabbed-mode close-window {addr}")
+
+        elif event.startswith("movewindow>>"):
+            parts = event.split(">>", 1)[1].split(",")
+            if len(parts) >= 1:
+                os.system(f"omarchy-hyprland-tabbed-mode move-window {parts[0]}")
+
+        elif event.startswith("createworkspace>>"):
+            ws_name = event.split(">>", 1)[1]
+            if ws_name and not ws_name.startswith("special"):
+                try:
+                    ws_id = int(ws_name)
+                    os.system(f"omarchy-hyprland-tabbed-mode tabbed-workspace {ws_id}")
+                except ValueError:
+                    pass
+
+
+if __name__ == "__main__":
+    main()
