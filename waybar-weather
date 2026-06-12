@@ -1,0 +1,11 @@
+#!/bin/bash
+icon=$(omarchy-weather-icon 2>/dev/null)
+status=$(curl -fsS --max-time 4 "https://wttr.in?format=%t|%w" 2>/dev/null | tr -d '\n')
+
+if [[ -n $icon && -n $status ]]; then
+  IFS='|' read -r temperature wind <<< "$status"
+  temperature=${temperature#+}
+  printf '{"text":"%s %s %s"}\n' "$icon" "$temperature" "$wind"
+else
+  printf '{"text":"","class":"unavailable"}\n'
+fi
