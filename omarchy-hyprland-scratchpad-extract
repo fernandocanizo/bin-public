@@ -1,0 +1,17 @@
+#!/bin/sh
+# Extract the focused window from a special workspace (e.g. scratchpad)
+# back to the current regular workspace.
+win=$(hyprctl activewindow -j 2>/dev/null)
+[ -z "$win" ] && exit 0
+
+ws_id=$(echo "$win" | jq -r '.workspace.id')
+[ -z "$ws_id" ] && exit 0
+
+# Only act if the window is on a special workspace (negative id)
+[ "$ws_id" -ge 0 ] && exit 0
+
+target=$(hyprctl activeworkspace -j | jq -r '.id')
+[ -z "$target" ] && exit 0
+
+addr=$(echo "$win" | jq -r '.address')
+hyprctl dispatch movetoworkspacesilent "$target","address:$addr"
